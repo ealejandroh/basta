@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basta - Botón Central</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header>
+            <h1>BASTA</h1>
+            <p class="subtitle">Simulador de Botón</p>
+        </header>
+
+        <main>
+            <!-- Setup Section -->
+            <section id="setup-section" class="panel setup-panel">
+                <h2>Jugadores</h2>
+                <div class="input-group">
+                    <input type="text" id="player-input" placeholder="Nombre del jugador" autocomplete="off">
+                    <button id="add-btn" class="icon-btn" aria-label="Agregar jugador">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="settings-group">
+                    <label for="time-input">Tiempo por turno (segundos):</label>
+                    <input type="number" id="time-input" value="10" min="3" max="60">
+                </div>
+
+                <ul id="player-list" class="player-list">
+                    <!-- Players will be added here -->
+                </ul>
+                <div class="actions">
+                    <button id="start-game-btn" class="primary-btn" disabled>Comenzar Juego</button>
+                </div>
+            </section>
+
+            <!-- Game Section (Initially Hidden) -->
+            <section id="game-section" class="panel game-panel hidden">
+                <div class="status-display">
+                    <span class="label">Turno de:</span>
+                    <div id="current-player-display" class="player-name">-</div>
+                    <div id="timer-display" class="timer">00</div>
+                </div>
+
+                <div class="button-container">
+                    <button id="basta-btn" class="main-game-button">
+                        <div class="inner-circle">
+                            <span>PRESS</span>
+                        </div>
+                    </button>
+                </div>
+
+                <button id="reset-btn" class="text-btn">Editar Jugadores</button>
+            </section>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
