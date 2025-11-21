@@ -15,7 +15,7 @@
     <div class="app-container">
         <header>
             <h1>BASTA</h1>
-            <p class="subtitle">Simulador de Botón</p>
+            <p class="subtitle">El que pierda lava la loza!</p>
         </header>
 
         <main>
@@ -34,7 +34,7 @@
                 </div>
 
                 <div class="settings-group">
-                    <label for="time-input">Tiempo por turno (segundos):</label>
+                    <label for="time-input">Segundos por turno:</label>
                     <input type="number" id="time-input" value="10" min="3" max="60">
                 </div>
 
@@ -49,15 +49,15 @@
             <!-- Game Section (Initially Hidden) -->
             <section id="game-section" class="panel game-panel hidden">
                 <div class="status-display">
-                    <span class="label">Turno de:</span>
+                    <span id="turno-display" class="label">Turno de:</span>
                     <div id="current-player-display" class="player-name">-</div>
-                    <div id="timer-display" class="timer">00</div>
                 </div>
 
                 <div class="button-container">
                     <button id="basta-btn" class="main-game-button">
                         <div class="inner-circle">
-                            <span>PRESS</span>
+                            <span id="press">PRESS</span>
+                            <div id="timer-display" class="timer">00</div>
                         </div>
                     </button>
                 </div>
