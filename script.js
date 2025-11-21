@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let turnDuration = 10;
     let audioCtx;
 
+    const URGENTE_TIME = 5;
+
     // Elements
     const playerInput = document.getElementById('player-input');
     const timeInput = document.getElementById('time-input');
@@ -17,7 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const setupSection = document.getElementById('setup-section');
     const gameSection = document.getElementById('game-section');
     const currentPlayerDisplay = document.getElementById('current-player-display');
+    const turnoDisplay = document.getElementById('turno-display');
     const timerDisplay = document.getElementById('timer-display');
+    const press = document.getElementById('press');
     const bastaBtn = document.getElementById('basta-btn');
     const resetBtn = document.getElementById('reset-btn');
 
@@ -109,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
             timeLeft--;
             updateTimerDisplay();
 
-            if (timeLeft <= 3 && timeLeft > 0) {
+            if (timeLeft <= URGENTE_TIME && timeLeft > 0) {
                 playBeep(800, 0.1); // Warning beeps
             }
 
@@ -124,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateTimerDisplay() {
         timerDisplay.textContent = timeLeft;
-        if (timeLeft <= 3) {
+        if (timeLeft <= URGENTE_TIME) {
             timerDisplay.classList.add('urgent');
         } else {
             timerDisplay.classList.remove('urgent');
@@ -137,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Visual & Audio Feedback
         currentPlayerDisplay.textContent = `${eliminatedPlayer} FUERA`;
         currentPlayerDisplay.style.color = 'var(--danger-color)';
-        speak(`${eliminatedPlayer} ha sido eliminado`);
+        speak(`${eliminatedPlayer} sale del juego`);
 
         // Remove player
         players.splice(currentPlayerIndex, 1);
@@ -156,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPlayerDisplay.textContent = `¡${winner} GANA!`;
         currentPlayerDisplay.style.color = 'var(--accent-color)';
         timerDisplay.textContent = '🏆';
-        speak(`¡Felicidades ${winner}, eres el ganador!`);
+        speak(`¡Felicidades, ganó ${winner}!`);
 
         // Disable game button
         bastaBtn.disabled = true;
@@ -171,6 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
         turnDuration = parseInt(timeInput.value) || 10;
         currentPlayerIndex = -1;
 
+        turnoDisplay.classList.add('hidden');
+        timerDisplay.classList.add('hidden');
         setupSection.classList.add('hidden');
         gameSection.classList.remove('hidden');
         currentPlayerDisplay.textContent = "Presiona para iniciar";
@@ -190,6 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (players.length === 0) return;
         if (players.length === 1) return; // Should be handled by declareWinner but safety check
 
+        turnoDisplay.classList.remove('hidden');
+        timerDisplay.classList.remove('hidden');
+        press.classList.add('hidden');
+
         // Logic: Move to next player
         currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
         const nextPlayer = players[currentPlayerIndex];
@@ -204,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPlayerDisplay.style.animation = 'slideIn 0.3s ease';
 
         // Speak & Start Timer
-        speak(`Turno de ${nextPlayer}`);
+        speak(`Sigue ${nextPlayer}`);
         startTimer();
     });
 
