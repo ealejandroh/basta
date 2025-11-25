@@ -233,8 +233,8 @@ input[type="number"]:focus {
     height: 40vmin;
     max-width: 250px;
     max-height: 250px;
-    min-width: 150px;
-    min-height: 150px;
+    min-width: 200px;
+    min-height: 200px;
 }
 
 .main-game-button {
