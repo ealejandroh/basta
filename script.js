@@ -1,12 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
     // State
     let players = [];
+    let playersCache = [];
     let currentPlayerIndex = -1;
     let synth = window.speechSynthesis;
     let timerInterval;
     let timeLeft;
     let turnDuration = 10;
     let audioCtx;
+
+    let tickTimeout;
 
     const URGENTE_TIME = 5;
 
@@ -47,6 +50,35 @@ document.addEventListener('DOMContentLoaded', () => {
         osc.start();
         gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
         osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function playTickSound() {
+        // Short, high-pitched tick
+        playBeep(1000, 0.05, 'triangle');
+    }
+
+    function startTicking() {
+        clearTimeout(tickTimeout);
+
+        const tick = () => {
+            if (timeLeft <= 0) return;
+
+            playTickSound();
+
+            // Calculate delay: faster as time runs out
+            // Map timeLeft (turnDuration -> 0) to delay (1000ms -> 100ms)
+            const progress = timeLeft / turnDuration;
+            // Non-linear curve for more dramatic effect
+            const delay = Math.max(150, Math.pow(progress, 1.5) * 1000);
+
+            tickTimeout = setTimeout(tick, delay);
+        };
+
+        tick();
+    }
+
+    function stopTicking() {
+        clearTimeout(tickTimeout);
     }
 
     function playAlarm() {
@@ -106,19 +138,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Timer Logic
     function startTimer() {
         clearInterval(timerInterval);
+        stopTicking(); // Reset ticking
         timeLeft = turnDuration;
         updateTimerDisplay();
+
+        startTicking(); // Start the sound loop
 
         timerInterval = setInterval(() => {
             timeLeft--;
             updateTimerDisplay();
 
-            if (timeLeft <= URGENTE_TIME && timeLeft > 0) {
-                playBeep(800, 0.1); // Warning beeps
-            }
-
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
+                stopTicking();
                 playAlarm();
                 handleElimination();
                 timerDisplay.classList.remove('urgent');
@@ -179,6 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
         timerDisplay.classList.add('hidden');
         setupSection.classList.add('hidden');
         gameSection.classList.remove('hidden');
+        press.classList.remove('hidden');
         currentPlayerDisplay.textContent = "Presiona para iniciar";
         currentPlayerDisplay.style.color = ''; // Reset color
         timerDisplay.textContent = turnDuration;
@@ -187,6 +220,8 @@ document.addEventListener('DOMContentLoaded', () => {
         bastaBtn.disabled = false;
         bastaBtn.style.opacity = '1';
         bastaBtn.style.cursor = 'pointer';
+
+        playersCache = [...players];
 
         initAudio(); // Pre-init audio context
     });
@@ -221,6 +256,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Reset Logic
     resetBtn.addEventListener('click', () => {
         clearInterval(timerInterval);
+        stopTicking();
+        players = [...playersCache];
         gameSection.classList.add('hidden');
         setupSection.classList.remove('hidden');
         // Update list in case players were removed
