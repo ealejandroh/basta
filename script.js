@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const playerInput = document.getElementById('player-input');
     const timeInput = document.getElementById('time-input');
     const addBtn = document.getElementById('add-btn');
+    const moveBtn = document.getElementById('move-btn');
+    const shuffleBtn = document.getElementById('shuffle-btn');
     const playerList = document.getElementById('player-list');
     const startGameBtn = document.getElementById('start-game-btn');
     const setupSection = document.getElementById('setup-section');
@@ -189,6 +191,24 @@ document.addEventListener('DOMContentLoaded', () => {
     addBtn.addEventListener('click', addPlayer);
     playerInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') addPlayer();
+    });
+
+    // Player List Controls
+    moveBtn.addEventListener('click', () => {
+        if (players.length < 2) return;
+        const first = players.shift();
+        players.push(first);
+        updatePlayerList();
+    });
+
+    shuffleBtn.addEventListener('click', () => {
+        if (players.length < 2) return;
+        // Fisher-Yates Shuffle
+        for (let i = players.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [players[i], players[j]] = [players[j], players[i]];
+        }
+        updatePlayerList();
     });
 
     // Timer Logic
