@@ -129,6 +129,32 @@ input[type="number"]:focus {
     background: var(--accent-hover);
 }
 
+.list-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.icon-btn-small {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: var(--text-secondary);
+    width: 32px;
+    height: 32px;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.icon-btn-small:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+}
+
 .player-list {
     list-style: none;
     max-height: 200px;
@@ -160,6 +186,25 @@ input[type="number"]:focus {
 
 .delete-btn:hover {
     color: var(--danger-color);
+}
+
+.secondary-actions {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.secondary-btn {
+    width: 46%;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
 .primary-btn {
@@ -300,4 +345,67 @@ input[type="number"]:focus {
     h1 {
         font-size: 2.5rem;
     }
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 24px;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--panel-bg);
+    transition: .4s;
+    border-radius: 24px;
+    border: 1px solid var(--text-secondary);
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(16px);
+}
+
+.toggle-label {
+    vertical-align: middle;
+    color: var(--text-primary);
+}
+
+.next-player {
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    margin-top: 0.5rem;
+    font-weight: normal;
+    min-height: 1.5rem;
 }

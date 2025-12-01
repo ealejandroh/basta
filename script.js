@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let timeLeft;
     let turnDuration = 10;
     let audioCtx;
+    let history = []; // History stack
+    let wins = {}; // Win counters
+    let showNextPlayer = false;
 
     let tickTimeout;
 
@@ -17,6 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const playerInput = document.getElementById('player-input');
     const timeInput = document.getElementById('time-input');
     const addBtn = document.getElementById('add-btn');
+    const moveBtn = document.getElementById('move-btn');
+    const shuffleBtn = document.getElementById('shuffle-btn');
     const playerList = document.getElementById('player-list');
     const startGameBtn = document.getElementById('start-game-btn');
     const setupSection = document.getElementById('setup-section');
@@ -27,6 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const press = document.getElementById('press');
     const bastaBtn = document.getElementById('basta-btn');
     const resetBtn = document.getElementById('reset-btn');
+    const undoBtn = document.getElementById('undo-btn');
+    const nextPlayerToggle = document.getElementById('next-player-toggle');
+    const nextPlayerDisplay = document.getElementById('next-player-display');
 
     // Audio Helper
     function initAudio() {
@@ -103,8 +111,12 @@ document.addEventListener('DOMContentLoaded', () => {
         players.forEach((player, index) => {
             const li = document.createElement('li');
             li.className = 'player-item';
+            const winCount = wins[player] || 0;
             li.innerHTML = `
-                <span>${player}</span>
+                <div class="player-info">
+                    <span>${player}</span>
+                    ${winCount > 0 ? `<span class="win-count">(${winCount} 🏆)</span>` : ''}
+                </div>
                 <button class="delete-btn" onclick="removePlayer(${index})">&times;</button>
             `;
             playerList.appendChild(li);
@@ -113,17 +125,90 @@ document.addEventListener('DOMContentLoaded', () => {
         startGameBtn.disabled = players.length < 2;
     }
 
+    // Helper: Update Next Player Display
+    function updateNextPlayerDisplay() {
+        if (!showNextPlayer || players.length < 2 || currentPlayerIndex === -1) {
+            nextPlayerDisplay.classList.add('hidden');
+            return;
+        }
+
+        const nextIndex = (currentPlayerIndex + 1) % players.length;
+        const nextPlayer = players[nextIndex];
+        nextPlayerDisplay.textContent = `Siguiente: ${nextPlayer}`;
+        nextPlayerDisplay.classList.remove('hidden');
+    }
+
     // Global function for inline onclick
     window.removePlayer = (index) => {
+        // No history for setup phase removals for now, or maybe we should? 
+        // The requirement is "Turno anterior", implying game phase. 
+        // Let's keep it simple for now.
         players.splice(index, 1);
         updatePlayerList();
     };
+
+    // History Logic
+    function saveState() {
+        history.push({
+            players: [...players],
+            currentPlayerIndex: currentPlayerIndex,
+            wins: { ...wins } // Clone wins object
+        });
+    }
+
+    function undo() {
+        if (history.length === 0) return;
+
+        const previousState = history.pop();
+        players = previousState.players;
+        currentPlayerIndex = previousState.currentPlayerIndex;
+        if (previousState.wins) {
+            wins = previousState.wins;
+        }
+
+        // Stop current timer/sound
+        clearInterval(timerInterval);
+        stopTicking();
+
+        // Restore UI
+        // If we undid an elimination, we might need to reset the display
+        if (currentPlayerIndex >= 0 && currentPlayerIndex < players.length) {
+             const currentPlayer = players[currentPlayerIndex];
+             currentPlayerDisplay.textContent = currentPlayer;
+             currentPlayerDisplay.style.color = '';
+             speak(`Sigue ${currentPlayer}`);
+             startTimer();
+             updateNextPlayerDisplay();
+        } else {
+            // Should not happen if logic is correct, but fallback
+            currentPlayerDisplay.textContent = "Presiona para iniciar";
+        }
+        
+        // Reset timer display
+        timeLeft = turnDuration;
+        updateTimerDisplay();
+        timerDisplay.classList.remove('urgent');
+
+        // Reset buttons
+        bastaBtn.disabled = false;
+        bastaBtn.style.opacity = '1';
+        bastaBtn.style.cursor = 'pointer';
+        
+        turnoDisplay.classList.remove('hidden');
+        timerDisplay.classList.remove('hidden');
+        press.classList.add('hidden');
+    }
+
+    undoBtn.addEventListener('click', undo);
 
     // Add Player Logic
     function addPlayer() {
         const name = playerInput.value.trim();
         if (name) {
             players.push(name);
+            if (wins[name] === undefined) {
+                wins[name] = 0;
+            }
             playerInput.value = '';
             updatePlayerList();
             playerInput.focus();
@@ -133,6 +218,29 @@ document.addEventListener('DOMContentLoaded', () => {
     addBtn.addEventListener('click', addPlayer);
     playerInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') addPlayer();
+    });
+
+    // Player List Controls
+    moveBtn.addEventListener('click', () => {
+        if (players.length < 2) return;
+        const first = players.shift();
+        players.push(first);
+        updatePlayerList();
+    });
+
+    shuffleBtn.addEventListener('click', () => {
+        if (players.length < 2) return;
+        // Fisher-Yates Shuffle
+        for (let i = players.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [players[i], players[j]] = [players[j], players[i]];
+        }
+        updatePlayerList();
+    });
+
+    nextPlayerToggle.addEventListener('change', (e) => {
+        showNextPlayer = e.target.checked;
+        updateNextPlayerDisplay();
     });
 
     // Timer Logic
@@ -152,7 +260,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearInterval(timerInterval);
                 stopTicking();
                 playAlarm();
+                saveState(); // Save before elimination
                 handleElimination();
+                updateNextPlayerDisplay();
                 timerDisplay.classList.remove('urgent');
             }
         }, 1000);
@@ -189,6 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function declareWinner(winner) {
+        wins[winner] = (wins[winner] || 0) + 1;
         currentPlayerDisplay.textContent = `¡${winner} GANA!`;
         currentPlayerDisplay.style.color = 'var(--accent-color)';
         timerDisplay.textContent = '🏆';
@@ -222,8 +333,10 @@ document.addEventListener('DOMContentLoaded', () => {
         bastaBtn.style.cursor = 'pointer';
 
         playersCache = [...players];
+        history = []; // Clear history on new game
 
         initAudio(); // Pre-init audio context
+        updateNextPlayerDisplay();
     });
 
     // Game Button Logic
@@ -236,6 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
         press.classList.add('hidden');
 
         // Logic: Move to next player
+        saveState();
         currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
         const nextPlayer = players[currentPlayerIndex];
 
@@ -251,6 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Speak & Start Timer
         speak(`Sigue ${nextPlayer}`);
         startTimer();
+        updateNextPlayerDisplay();
     });
 
     // Reset Logic
