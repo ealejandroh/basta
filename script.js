@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let turnDuration = 10;
     let audioCtx;
     let history = []; // History stack
+    let wins = {}; // Win counters
 
     let tickTimeout;
 
@@ -107,8 +108,12 @@ document.addEventListener('DOMContentLoaded', () => {
         players.forEach((player, index) => {
             const li = document.createElement('li');
             li.className = 'player-item';
+            const winCount = wins[player] || 0;
             li.innerHTML = `
-                <span>${player}</span>
+                <div class="player-info">
+                    <span>${player}</span>
+                    ${winCount > 0 ? `<span class="win-count">(${winCount} 🏆)</span>` : ''}
+                </div>
                 <button class="delete-btn" onclick="removePlayer(${index})">&times;</button>
             `;
             playerList.appendChild(li);
@@ -131,8 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         history.push({
             players: [...players],
             currentPlayerIndex: currentPlayerIndex,
-            // We might need to save more if we want to restore exact timer or other things, 
-            // but "Turno anterior" usually implies resetting the turn.
+            wins: { ...wins } // Clone wins object
         });
     }
 
@@ -142,6 +146,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const previousState = history.pop();
         players = previousState.players;
         currentPlayerIndex = previousState.currentPlayerIndex;
+        if (previousState.wins) {
+            wins = previousState.wins;
+        }
 
         // Stop current timer/sound
         clearInterval(timerInterval);
@@ -182,6 +189,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = playerInput.value.trim();
         if (name) {
             players.push(name);
+            if (wins[name] === undefined) {
+                wins[name] = 0;
+            }
             playerInput.value = '';
             updatePlayerList();
             playerInput.focus();
@@ -266,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function declareWinner(winner) {
+        wins[winner] = (wins[winner] || 0) + 1;
         currentPlayerDisplay.textContent = `¡${winner} GANA!`;
         currentPlayerDisplay.style.color = 'var(--accent-color)';
         timerDisplay.textContent = '🏆';
