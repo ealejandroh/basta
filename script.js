@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let timeLeft;
     let turnDuration = 10;
     let audioCtx;
+    let history = []; // History stack
 
     let tickTimeout;
 
@@ -27,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const press = document.getElementById('press');
     const bastaBtn = document.getElementById('basta-btn');
     const resetBtn = document.getElementById('reset-btn');
+    const undoBtn = document.getElementById('undo-btn');
 
     // Audio Helper
     function initAudio() {
@@ -115,9 +117,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Global function for inline onclick
     window.removePlayer = (index) => {
+        // No history for setup phase removals for now, or maybe we should? 
+        // The requirement is "Turno anterior", implying game phase. 
+        // Let's keep it simple for now.
         players.splice(index, 1);
         updatePlayerList();
     };
+
+    // History Logic
+    function saveState() {
+        history.push({
+            players: [...players],
+            currentPlayerIndex: currentPlayerIndex,
+            // We might need to save more if we want to restore exact timer or other things, 
+            // but "Turno anterior" usually implies resetting the turn.
+        });
+    }
+
+    function undo() {
+        if (history.length === 0) return;
+
+        const previousState = history.pop();
+        players = previousState.players;
+        currentPlayerIndex = previousState.currentPlayerIndex;
+
+        // Stop current timer/sound
+        clearInterval(timerInterval);
+        stopTicking();
+
+        // Restore UI
+        // If we undid an elimination, we might need to reset the display
+        if (currentPlayerIndex >= 0 && currentPlayerIndex < players.length) {
+             const currentPlayer = players[currentPlayerIndex];
+             currentPlayerDisplay.textContent = currentPlayer;
+             currentPlayerDisplay.style.color = '';
+             speak(`Sigue ${currentPlayer}`);
+             startTimer();
+        } else {
+            // Should not happen if logic is correct, but fallback
+            currentPlayerDisplay.textContent = "Presiona para iniciar";
+        }
+        
+        // Reset timer display
+        timeLeft = turnDuration;
+        updateTimerDisplay();
+        timerDisplay.classList.remove('urgent');
+
+        // Reset buttons
+        bastaBtn.disabled = false;
+        bastaBtn.style.opacity = '1';
+        bastaBtn.style.cursor = 'pointer';
+        
+        turnoDisplay.classList.remove('hidden');
+        timerDisplay.classList.remove('hidden');
+        press.classList.add('hidden');
+    }
+
+    undoBtn.addEventListener('click', undo);
 
     // Add Player Logic
     function addPlayer() {
@@ -152,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearInterval(timerInterval);
                 stopTicking();
                 playAlarm();
+                saveState(); // Save before elimination
                 handleElimination();
                 timerDisplay.classList.remove('urgent');
             }
@@ -222,6 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bastaBtn.style.cursor = 'pointer';
 
         playersCache = [...players];
+        history = []; // Clear history on new game
 
         initAudio(); // Pre-init audio context
     });
@@ -236,6 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
         press.classList.add('hidden');
 
         // Logic: Move to next player
+        saveState();
         currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
         const nextPlayer = players[currentPlayerIndex];
 
