@@ -188,6 +188,25 @@ input[type="number"]:focus {
     color: var(--danger-color);
 }
 
+.secondary-actions {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.secondary-btn {
+    width: 46%;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
 .primary-btn {
     width: 100%;
     background: var(--accent-color);
