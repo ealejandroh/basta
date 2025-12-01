@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let audioCtx;
     let history = []; // History stack
     let wins = {}; // Win counters
+    let showNextPlayer = false;
 
     let tickTimeout;
 
@@ -32,6 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const bastaBtn = document.getElementById('basta-btn');
     const resetBtn = document.getElementById('reset-btn');
     const undoBtn = document.getElementById('undo-btn');
+    const nextPlayerToggle = document.getElementById('next-player-toggle');
+    const nextPlayerDisplay = document.getElementById('next-player-display');
 
     // Audio Helper
     function initAudio() {
@@ -122,6 +125,19 @@ document.addEventListener('DOMContentLoaded', () => {
         startGameBtn.disabled = players.length < 2;
     }
 
+    // Helper: Update Next Player Display
+    function updateNextPlayerDisplay() {
+        if (!showNextPlayer || players.length < 2 || currentPlayerIndex === -1) {
+            nextPlayerDisplay.classList.add('hidden');
+            return;
+        }
+
+        const nextIndex = (currentPlayerIndex + 1) % players.length;
+        const nextPlayer = players[nextIndex];
+        nextPlayerDisplay.textContent = `Siguiente: ${nextPlayer}`;
+        nextPlayerDisplay.classList.remove('hidden');
+    }
+
     // Global function for inline onclick
     window.removePlayer = (index) => {
         // No history for setup phase removals for now, or maybe we should? 
@@ -162,6 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
              currentPlayerDisplay.style.color = '';
              speak(`Sigue ${currentPlayer}`);
              startTimer();
+             updateNextPlayerDisplay();
         } else {
             // Should not happen if logic is correct, but fallback
             currentPlayerDisplay.textContent = "Presiona para iniciar";
@@ -221,6 +238,11 @@ document.addEventListener('DOMContentLoaded', () => {
         updatePlayerList();
     });
 
+    nextPlayerToggle.addEventListener('change', (e) => {
+        showNextPlayer = e.target.checked;
+        updateNextPlayerDisplay();
+    });
+
     // Timer Logic
     function startTimer() {
         clearInterval(timerInterval);
@@ -240,6 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 playAlarm();
                 saveState(); // Save before elimination
                 handleElimination();
+                updateNextPlayerDisplay();
                 timerDisplay.classList.remove('urgent');
             }
         }, 1000);
@@ -313,6 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
         history = []; // Clear history on new game
 
         initAudio(); // Pre-init audio context
+        updateNextPlayerDisplay();
     });
 
     // Game Button Logic
@@ -341,6 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Speak & Start Timer
         speak(`Sigue ${nextPlayer}`);
         startTimer();
+        updateNextPlayerDisplay();
     });
 
     // Reset Logic
